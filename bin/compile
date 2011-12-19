@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+set -x
+set -e
+set -o pipefail
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+DEBS_DIR=/tmp/debs
+export UBUNTU_URL=http://us.archive.ubuntu.com/ubuntu
+
+echo "DEB_PACKAGES: '$DEB_PACKAGES'"
+
+download () {
+  DEB_PATH=$1
+  DEB_FILE=$(basename $DEB_PATH)
+  EXTRACT_PATH=$2
+  curl -vf $UBUNTU_URL/pool/$DEB_PATH > $DEB_FILE
+  dpkg-deb -X $DEB_FILE $DEBS_DIR/$EXTRACT_PATH
+}
+
+mkdir -p $DEBS_DIR
+download main/r/rsync/rsync_3.0.7-1ubuntu1.1_amd64.deb rsync
+download main/u/util-linux/libuuid1_2.17.2-0ubuntu1.10.04.2_amd64.deb libuuid1
+download main/u/util-linux/uuid-dev_2.17.2-0ubuntu1.10.04.2_amd64.deb uuid-dev
+download universe/t/tree/tree_1.5.3-1_amd64.deb tree
+
+cd $BUILD_DIR
+mkdir sw
+
+$DEBS_DIR/rsync/usr/bin/rsync -vvaP $DEBS_DIR/libuuid1/usr/ $BUILD_DIR/sw/
+$DEBS_DIR/rsync/usr/bin/rsync -vvaP $DEBS_DIR/libuuid1/lib/ $BUILD_DIR/sw/lib/
+$DEBS_DIR/rsync/usr/bin/rsync -vvaP $DEBS_DIR/uuid-dev/usr/ $BUILD_DIR/sw/
+
+rm $BUILD_DIR/sw/lib/libuuid.so
+(
+  cd $BUILD_DIR/sw/lib
+  ln -vnfs libuuid.so.1.3.0 libuuid.so
+)
+
+$DEBS_DIR/tree/usr/bin/tree /
+
+rm -fr $DEBS_DIR
+
+exit 0
