@@ -26,13 +26,13 @@ download main/r/ruby1.8/ruby1.8_1.8.7.249-2_amd64.deb
 download main/r/ruby1.8/ruby1.8-dev_1.8.7.249-2_amd64.deb
 download main/r/ruby1.8/irb1.8_1.8.7.249-2_all.deb
 
-#download main/u/util-linux/libuuid1_2.17.2-0ubuntu1.10.04.2_amd64.deb
-#download main/u/util-linux/uuid-dev_2.17.2-0ubuntu1.10.04.2_amd64.deb
-
 find $BUILD_DIR/sw -type l -ls
 
-#rm $BUILD_DIR/sw/usr/lib/libuuid.so
-#(
-#  cd $BUILD_DIR/sw/usr/lib
-#  ln -vnfs $BUILD_DIR/sw/lib/libuuid.so.1.3.0 libuuid.so
-#)
+export LDFLAGS="-L$BUILD_DIR/sw/lib -L$BUILD_DIR/sw/usr/lib"
+export CPPFLAGS="-I$BUILD_DIR/sw/usr/include"
+export GEM_HOME="$BUILD_DIR/gems"
+export GEM_PATH=""
+export PATH="$GEM_HOME/bin:$BUILD_DIR/sw/bin:$BUILD_DIR/sw/usr/bin:$PATH"
+
+gem install bundler --pre --no-ri --no-rdoc
+bundle install --deployment --standalone
